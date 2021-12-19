@@ -12,10 +12,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
+ * 可补偿方法上下文
  * Created by changming.xie on 04/04/19.
  */
 public class CompensableMethodContext {
 
+    /**
+     * 方法切入点，用于执行目标业务方法
+     */
     TransactionMethodJoinPoint pjp = null;
 
     private Transaction transaction = null;
@@ -30,7 +34,7 @@ public class CompensableMethodContext {
         this.transaction = transaction;
 
         this.compensable = pjp.getCompensable();
-
+        // 获取开发者指定的TransactionContextEditor实例，然后调用其get方法，获取事务上下文
         this.transactionContext = FactoryBuilder.factoryOf(pjp.getTransactionContextEditorClass()).getInstance().get(pjp.getTarget(), pjp.getMethod(), pjp.getArgs());
     }
 
@@ -66,9 +70,9 @@ public class CompensableMethodContext {
 
     /**
      *
-     * 如果方法被@Compensable 注释，则表示需要tcc 事务，如果没有活动事务，则需要require new。
+     * 如果方法被@Compensable 注释，则表示需要tcc 事务，如果没有活动事务，则需要创建一个新的事务。
      * 如果方法不是@Compensable 注释，而是带有 TransactionContext 参数。
-     *      如果有活动交易，这意味着需要参与者 tcc 交易。如果 transactionContext 为 null，则它将事务登记为 CONSUMER 角色，
+     *      如果有活动事务，这意味着需要参与者 tcc 事务。如果 transactionContext 为 null，则它将事务登记为 CONSUMER 角色，
      *      else 表示有另一个方法作为 Consumer 已经登记了事务，这个方法不需要登记。
      * @return
      */

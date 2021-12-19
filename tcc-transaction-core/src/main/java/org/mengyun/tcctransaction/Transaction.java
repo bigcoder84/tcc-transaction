@@ -33,6 +33,9 @@ public class Transaction implements Serializable {
      * 附带属性映射
      */
     private final Map<String, Object> attachments = new ConcurrentHashMap<String, Object>();
+    /**
+     * 事务ID
+     */
     private TransactionXid xid;
     /**
      * 事务状态

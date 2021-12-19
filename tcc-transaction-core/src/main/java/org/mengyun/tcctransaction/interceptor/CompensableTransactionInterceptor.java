@@ -28,7 +28,7 @@ public class CompensableTransactionInterceptor {
     }
 
     public Object interceptCompensableMethod(TransactionMethodJoinPoint pjp) throws Throwable {
-
+        //获得当前线程所在事务
         Transaction transaction = transactionManager.getCurrentTransaction();
         CompensableMethodContext compensableMethodContext = new CompensableMethodContext(pjp, transaction);
 
@@ -90,6 +90,7 @@ public class CompensableTransactionInterceptor {
                     transaction = transactionManager.propagationNewBegin(compensableMethodContext.getTransactionContext());
                     Object result = null;
                     try {
+                        // 执行业务代码
                         result = compensableMethodContext.proceed();
                         //TODO: need tuning here, async change the status to tuning the invoke chain performance
                         //transactionManager.changeStatus(TransactionStatus.TRY_SUCCESS, asyncSave);
@@ -114,7 +115,8 @@ public class CompensableTransactionInterceptor {
                 case CANCELLING:
                     try {
                         //The transaction' status of this branch transaction, passed from consumer side.
-                        //该分支事务的事务状态，从消费者端传递过来。
+                        // 该分支事务的事务状态，有消费者传递过来
+                        // todo
                         int transactionStatusFromConsumer = compensableMethodContext.getTransactionContext().getParticipantStatus();
                         transaction = transactionManager.propagationExistBegin(compensableMethodContext.getTransactionContext());
 

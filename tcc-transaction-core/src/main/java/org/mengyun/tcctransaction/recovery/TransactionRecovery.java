@@ -62,42 +62,37 @@ public class TransactionRecovery {
      * 恢复异常事务
      */
     public void startRecover() {
-
+        // 初始化
         ensureRecoveryInitialized();
-
+        // 获取事务存储器
         TransactionRepository transactionRepository = transactionConfigurator.getTransactionRepository();
 
         if (transactionRepository instanceof SentinelTransactionRepository) {
-
             SentinelTransactionRepository sentinelTransactionRepository = (SentinelTransactionRepository) transactionRepository;
-
             if (!sentinelTransactionRepository.getSentinelController().degrade()) {
                 startRecover(sentinelTransactionRepository.getWorkTransactionRepository());
             }
             // 开始恢复
             startRecover(sentinelTransactionRepository.getDegradedTransactionRepository());
-
         } else {
             startRecover(transactionRepository);
         }
     }
 
     public void startRecover(TransactionRepository transactionRepository) {
-        // 如果存储在内存，则使用默认的Lock；如果不是
+        // 如果存储在内存，则使用默认的Lock；如果不是则获取默认的锁
         Lock recoveryLock = transactionRepository instanceof LocalStorable ? RecoveryLock.DEFAULT_LOCK : transactionConfigurator.getRecoveryLock();
 
         // 加锁
         if (recoveryLock.tryLock()) {
             try {
-
                 String offset = null;
-
                 int totalCount = 0;
                 do {
-                    //
+                    // 获取异常事务列表
                     Page<Transaction> page = loadErrorTransactionsByPage(transactionRepository, offset);
-
                     if (page.getData().size() > 0) {
+                        // 并发恢复异常事务
                         concurrentRecoveryErrorTransactions(transactionRepository, page.getData());
                         offset = page.getNextOffset();
                         totalCount += page.getData().size();
@@ -296,7 +291,7 @@ public class TransactionRecovery {
         if (recoveryExecutorService == null) {
             synchronized (TransactionRecovery.class) {
                 if (recoveryExecutorService == null) {
-
+                    // 创建线程池，用于执行任务
                     recoveryExecutorService = Executors.newFixedThreadPool(transactionConfigurator.getRecoverFrequency().getConcurrentRecoveryThreadCount());
 
                     logMaxPrintCount = transactionConfigurator.getRecoverFrequency().getFetchPageSize() / 2

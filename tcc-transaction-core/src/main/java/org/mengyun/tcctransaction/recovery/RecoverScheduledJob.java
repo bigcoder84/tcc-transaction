@@ -4,7 +4,7 @@ import org.mengyun.tcctransaction.SystemException;
 import org.quartz.*;
 
 /**
- * 事务重试JOB，事务恢复定时任务，基于 Quartz 实现调度，不断不断不断执行事务恢复
+ * 事务重试JOB，事务恢复定时任务，基于 Quartz 实现调度，不断执行事务恢复
  * Created by changming.xie on 6/2/16.
  */
 public class RecoverScheduledJob {
@@ -25,6 +25,7 @@ public class RecoverScheduledJob {
     public void init() {
 
         try {
+            // JOB执行QuartzRecoveryTask#execute方法
             JobDetail jobDetail = JobBuilder.newJob(QuartzRecoveryTask.class).withIdentity(jobName).build();
             jobDetail.getJobDataMap().put(QuartzRecoveryTask.RECOVERY_INSTANCE_KEY, transactionRecovery);
 
