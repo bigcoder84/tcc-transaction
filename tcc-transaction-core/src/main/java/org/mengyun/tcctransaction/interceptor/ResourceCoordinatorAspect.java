@@ -13,6 +13,7 @@ import org.mengyun.tcctransaction.api.TransactionContextEditor;
 import java.lang.reflect.Method;
 
 /**
+ * 资源协调者拦截器
  * Created by changmingxie on 11/8/15.
  */
 @Aspect
@@ -30,21 +31,16 @@ public abstract class ResourceCoordinatorAspect {
     public Object interceptTransactionResourceMethodWithCompensableAnnotation(ProceedingJoinPoint pjp) throws Throwable {
 
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-
         Compensable compensable = method.getAnnotation(Compensable.class);
-
         Class<? extends TransactionContextEditor> transactionContextEditor = NullableTransactionContextEditor.class;
-
         if (compensable != null) {
+            // 获取事务上下文编辑器
             transactionContextEditor = compensable.transactionContextEditor();
         }
-
         if (transactionContextEditor.equals(NullableTransactionContextEditor.class)
                 && ParameterTransactionContextEditor.hasTransactionContextParameter(method.getParameterTypes())) {
-
             transactionContextEditor = ParameterTransactionContextEditor.class;
         }
-
         return interceptTransactionContextMethod(new AspectJTransactionMethodJoinPoint(pjp, compensable, transactionContextEditor));
     }
 

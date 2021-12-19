@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 事务管理器，提供事务的获取、发起、提交、回滚，参与者的新增等等方法。
  * Created by changmingxie on 10/26/15.
  */
 public class TransactionManager {
@@ -57,25 +58,43 @@ public class TransactionManager {
         return transaction;
     }
 
+    /**
+     * 发起根事务
+     * @return
+     */
     public Transaction begin() {
         Transaction transaction = new Transaction(TransactionType.ROOT);
         //for performance tuning, at create stage do not persistent
 //        transactionRepository.create(transaction);
+        // 注册事务
         registerTransaction(transaction);
         return transaction;
     }
 
+    /**
+     * 发起分支事务。该方法在调用方法类型为 ParticipantRole.PROVIDER 并且 事务处于 Try 阶段被调用
+     * @param transactionContext
+     * @return
+     */
     public Transaction propagationNewBegin(TransactionContext transactionContext) {
-
+        // 创建 分支事务
         Transaction transaction = new Transaction(transactionContext);
 
         //for performance tuning, at create stage do not persistent
 //        transactionRepository.create(transaction);
+        //注册 事务
         registerTransaction(transaction);
         return transaction;
     }
 
+    /**
+     * 获取分支事务。该方法在调用方法类型为 ParticipantRole.PROVIDER 并且 事务处于 Confirm / Cancel 阶段被调用
+     * @param transactionContext
+     * @return
+     * @throws NoExistedTransactionException
+     */
     public Transaction propagationExistBegin(TransactionContext transactionContext) throws NoExistedTransactionException {
+        // 查询事务
         Transaction transaction = transactionRepository.findByXid(transactionContext.getXid());
 
         if (transaction != null) {
@@ -86,6 +105,10 @@ public class TransactionManager {
         }
     }
 
+    /**
+     * 添加参与者到事务
+     * @param participant
+     */
     public void enlistParticipant(Participant participant) {
         Transaction transaction = this.getCurrentTransaction();
         transaction.enlistParticipant(participant);
@@ -99,11 +122,11 @@ public class TransactionManager {
     }
 
     public void commit(boolean asyncCommit) {
-
+        // 获取事务
         final Transaction transaction = getCurrentTransaction();
-
+        // 设置事务状态为confirm
         transaction.changeStatus(TransactionStatus.CONFIRMING);
-
+        // 更新事务
         transactionRepository.update(transaction);
 
         if (asyncCommit) {
@@ -122,20 +145,22 @@ public class TransactionManager {
                 //throw new ConfirmingException(commitException);
             }
         } else {
+            // 提交事务
             commitTransaction(transaction);
         }
     }
 
 
     public void rollback(boolean asyncRollback) {
-
+        // 获取事务
         final Transaction transaction = getCurrentTransaction();
+        // 设置事务状态为 CANCELLING
         transaction.changeStatus(TransactionStatus.CANCELLING);
-
+        // 更新事务记录
         transactionRepository.update(transaction);
 
         if (asyncRollback) {
-
+            // 是否是异步操作
             try {
                 asyncTerminatorExecutorService.submit(new Runnable() {
                     @Override
@@ -148,15 +173,21 @@ public class TransactionManager {
                 throw new CancellingException(rollbackException);
             }
         } else {
-
+            // 回滚事务
             rollbackTransaction(transaction);
         }
     }
 
 
+    /**
+     * 提交事务
+     * @param transaction
+     */
     private void commitTransaction(Transaction transaction) {
         try {
+            // 提交事务
             transaction.commit();
+            // 删除事务记录
             transactionRepository.delete(transaction);
         } catch (Throwable commitException) {
 
@@ -174,7 +205,9 @@ public class TransactionManager {
 
     private void rollbackTransaction(Transaction transaction) {
         try {
+            // 事务回滚
             transaction.rollback();
+            // 删除事务记录
             transactionRepository.delete(transaction);
         } catch (Throwable rollbackException) {
 
@@ -190,6 +223,11 @@ public class TransactionManager {
         }
     }
 
+    /**
+     * 获取当前线程 事务队列的队头事务
+     * tips: registerTransaction是将事务注册到队列头部
+     * @return
+     */
     public Transaction getCurrentTransaction() {
         if (isTransactionActive()) {
             return CURRENT.get().peek();
@@ -197,12 +235,20 @@ public class TransactionManager {
         return null;
     }
 
+    /**
+     * 判断当前线程是否在事务中
+     * @return
+     */
     public boolean isTransactionActive() {
         Deque<Transaction> transactions = CURRENT.get();
         return transactions != null && !transactions.isEmpty();
     }
 
 
+    /**
+     * 注册事务到当前线程事务队列
+     * @param transaction
+     */
     private void registerTransaction(Transaction transaction) {
 
         if (CURRENT.get() == null) {

@@ -20,14 +20,23 @@ import java.util.List;
  */
 public class JdbcTransactionRepository extends AbstractTransactionRepository {
 
+    /**
+     * 领域，或者也可以称为模块名，应用名，用于唯一标识一个资源。例如，Maven 模块 xxx-order，我们可以配置该属性为 ORDER。
+     */
     private String domain;
 
+    /**
+     * 表后缀。默认存储表名为 TCC_TRANSACTION，配置表名后，为 TCC_TRANSACTION${tbSuffix}
+     */
     private String tbSuffix;
 
     private String rootDomain;
 
     private String rootTbSuffix;
 
+    /**
+     * 数据源
+     */
     private DataSource dataSource;
 
     private TransactionSerializer serializer = new RegisterableKryoTransactionSerializer();

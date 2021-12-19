@@ -13,6 +13,7 @@ import org.mengyun.tcctransaction.api.TransactionContextEditor;
 import java.lang.reflect.Method;
 
 /**
+ * 可补偿事务拦截器
  * Created by changmingxie on 10/30/15.
  */
 @Aspect

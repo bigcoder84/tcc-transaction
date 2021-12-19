@@ -5,6 +5,7 @@ import org.mengyun.tcctransaction.api.*;
 import java.io.Serializable;
 
 /**
+ * 事务参与者
  * Created by changmingxie on 10/27/15.
  */
 public class Participant implements Serializable {
@@ -13,8 +14,23 @@ public class Participant implements Serializable {
     Class<? extends TransactionContextEditor> transactionContextEditorClass;
 
     private TransactionXid rootXid;
+    /**
+     * 事务编号
+     * <p>
+     * 参与者事务编号。通过 TransactionXid.globalTransactionId 属性，
+     * 关联上其所属的事务。当参与者进行远程调用时，远程的分支事务的事务编号等于该参与者的事务编号。
+     * 通过事务编号的关联，TCC Confirm / Cancel 阶段，使用参与者的事务编号和远程的分支事务进行关联，
+     * 从而实现事务的提交和回滚
+     * <p/>
+     */
     private TransactionXid xid;
+    /**
+     * 确认执行业务方法调用上下文
+     */
     private InvocationContext confirmInvocationContext;
+    /**
+     * 取消执行业务方法
+     */
     private InvocationContext cancelInvocationContext;
     private int status = ParticipantStatus.TRYING.getId();
 

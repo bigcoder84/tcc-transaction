@@ -28,6 +28,7 @@ import static org.mengyun.tcctransaction.api.TransactionStatus.CONFIRMING;
 
 
 /**
+ * 异常事务恢复逻辑
  * Created by changmingxie on 11/10/15.
  */
 public class TransactionRecovery {
@@ -42,6 +43,9 @@ public class TransactionRecovery {
 
     private TransactionConfigurator transactionConfigurator;
 
+    /**
+     * 触发最大重试打印计数
+     */
     private AtomicInteger triggerMaxRetryPrintCount = new AtomicInteger();
 
     private AtomicInteger recoveryFailedPrintCount = new AtomicInteger();
@@ -54,6 +58,9 @@ public class TransactionRecovery {
         this.transactionConfigurator = transactionConfigurator;
     }
 
+    /**
+     * 恢复异常事务
+     */
     public void startRecover() {
 
         ensureRecoveryInitialized();
@@ -67,7 +74,7 @@ public class TransactionRecovery {
             if (!sentinelTransactionRepository.getSentinelController().degrade()) {
                 startRecover(sentinelTransactionRepository.getWorkTransactionRepository());
             }
-
+            // 开始恢复
             startRecover(sentinelTransactionRepository.getDegradedTransactionRepository());
 
         } else {
@@ -75,11 +82,11 @@ public class TransactionRecovery {
         }
     }
 
-
     public void startRecover(TransactionRepository transactionRepository) {
-
+        // 如果存储在内存，则使用默认的Lock；如果不是
         Lock recoveryLock = transactionRepository instanceof LocalStorable ? RecoveryLock.DEFAULT_LOCK : transactionConfigurator.getRecoveryLock();
 
+        // 加锁
         if (recoveryLock.tryLock()) {
             try {
 
@@ -87,7 +94,7 @@ public class TransactionRecovery {
 
                 int totalCount = 0;
                 do {
-
+                    //
                     Page<Transaction> page = loadErrorTransactionsByPage(transactionRepository, offset);
 
                     if (page.getData().size() > 0) {
@@ -113,11 +120,18 @@ public class TransactionRecovery {
         long currentTimeInMillis = Instant.now().toEpochMilli();
 
         RecoverFrequency recoverFrequency = transactionConfigurator.getRecoverFrequency();
-
+        //当前时间超过 - 事务变更时间( 最后执行时间 ) >= 事务恢复间隔( RecoverConfig#getRecoverDuration() )
         return transactionRepository.findAllUnmodifiedSince(new Date(currentTimeInMillis - recoverFrequency.getRecoverDuration() * 1000), offset, recoverFrequency.getFetchPageSize());
     }
 
 
+    /**
+     * 恢复异常事务集合
+     * @param transactionRepository
+     * @param transactions
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     private void concurrentRecoveryErrorTransactions(TransactionRepository transactionRepository, List<Transaction> transactions) throws InterruptedException, ExecutionException {
 
         initLogStatistics();
@@ -146,7 +160,7 @@ public class TransactionRecovery {
     private void recoverErrorTransaction(TransactionRepository transactionRepository, Transaction transaction) {
 
         if (transaction.getRetriedCount() > transactionConfigurator.getRecoverFrequency().getMaxRetryCount()) {
-
+            //当单个事务超过最大重试次数时，不再重试，只打印异常。
             logSync.lock();
             try {
                 if (triggerMaxRetryPrintCount.get() < logMaxPrintCount) {
@@ -171,7 +185,7 @@ public class TransactionRecovery {
         try {
 
             if (transaction.getTransactionType().equals(TransactionType.ROOT)) {
-
+                // 如果是根事务
                 switch (transaction.getStatus()) {
                     case CONFIRMING:
                         commitTransaction(transactionRepository, transaction);
@@ -186,7 +200,7 @@ public class TransactionRecovery {
                 }
 
             } else {
-
+                // 如果是分支事务
                 //transaction type is BRANCH
                 switch (transaction.getStatus()) {
                     case CONFIRMING:

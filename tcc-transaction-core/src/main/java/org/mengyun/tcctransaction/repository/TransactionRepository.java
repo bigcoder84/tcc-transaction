@@ -7,6 +7,7 @@ import java.io.Closeable;
 import java.util.Date;
 
 /**
+ * 事务存储接口，不同的存储器通过实现该接口，提供事务的增删改查功能。
  * Created by changmingxie on 11/12/15.
  */
 public interface TransactionRepository extends Closeable {

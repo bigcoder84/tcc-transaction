@@ -21,14 +21,38 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Transaction implements Serializable {
 
     private static final long serialVersionUID = 7291423944314337931L;
+    /**
+     * 事务创建时间
+     */
     private final Date createTime = new Date();
+    /**
+     * 参与者集合
+     */
     private final List<Participant> participants = new ArrayList<Participant>();
+    /**
+     * 附带属性映射
+     */
     private final Map<String, Object> attachments = new ConcurrentHashMap<String, Object>();
     private TransactionXid xid;
+    /**
+     * 事务状态
+     */
     private TransactionStatus status;
+    /**
+     * 事务类型
+     */
     private TransactionType transactionType;
+    /**
+     * 重试次数
+     */
     private volatile int retriedCount = 0;
+    /**
+     * 最后更新时间
+     */
     private Date lastUpdateTime = new Date();
+    /**
+     * 版本号
+     */
     private long version = 0;
     private TransactionXid rootXid;
 
@@ -36,6 +60,10 @@ public class Transaction implements Serializable {
 
     }
 
+    /**
+     * 创建分支事务
+     * @param transactionContext
+     */
     public Transaction(TransactionContext transactionContext) {
         this.xid = transactionContext.getXid();
         this.rootXid = transactionContext.getRootXid();
@@ -44,6 +72,10 @@ public class Transaction implements Serializable {
         this.transactionType = TransactionType.BRANCH;
     }
 
+    /**
+     * 创建指定类型的根事务
+     * @param transactionType
+     */
     public Transaction(TransactionType transactionType) {
         this(null, transactionType);
     }
@@ -59,6 +91,10 @@ public class Transaction implements Serializable {
         }
     }
 
+    /**
+     * 添加参与者
+     * @param participant
+     */
     public void enlistParticipant(Participant participant) {
         participants.add(participant);
     }
@@ -88,6 +124,9 @@ public class Transaction implements Serializable {
         this.status = status;
     }
 
+    /**
+     * 提交TCC事务
+     */
     public void commit() {
         for (Participant participant : participants) {
             if (!participant.getStatus().equals(ParticipantStatus.CONFIRM_SUCCESS)) {
@@ -97,6 +136,9 @@ public class Transaction implements Serializable {
         }
     }
 
+    /**
+     * 回滚TCC事务
+     */
     public void rollback() {
         for (Participant participant : participants) {
             if (!participant.getStatus().equals(ParticipantStatus.CANCEL_SUCCESS)) {

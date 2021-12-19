@@ -22,15 +22,15 @@ public final class Terminator {
         if (StringUtils.isNotEmpty(invocationContext.getMethodName())) {
 
             try {
-
+                // 获得 参与者对象
                 Object target = FactoryBuilder.factoryOf(invocationContext.getTargetClass()).getInstance();
 
                 Method method = null;
-
+                // 获得方法
                 method = target.getClass().getMethod(invocationContext.getMethodName(), invocationContext.getParameterTypes());
-
+                // 设置事务上下文到方法参数
                 FactoryBuilder.factoryOf(transactionContextEditorClass).getInstance().set(transactionContext, target, method, invocationContext.getArgs());
-
+                // 执行方法
                 return method.invoke(target, invocationContext.getArgs());
 
             } catch (Exception e) {

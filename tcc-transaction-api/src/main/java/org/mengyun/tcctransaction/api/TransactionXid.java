@@ -8,14 +8,24 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
+ * 事务编号，用于唯一标识一个事务。使用 UUID 算法生成，保证唯一性
  * Created by changmingxie on 10/26/15.
  */
 public class TransactionXid implements Xid, Serializable {
 
     private static final long serialVersionUID = -6817267250789142043L;
     private static byte[] CUSTOMIZED_TRANSACTION_ID = "UniqueIdentity".getBytes();
+    /**
+     * xid格式标识
+     */
     private int formatId = 1;
+    /**
+     * 全局事务编号
+     */
     private byte[] globalTransactionId;
+    /**
+     * 分支事务编号
+     */
     private byte[] branchQualifier;
 
     public TransactionXid() {

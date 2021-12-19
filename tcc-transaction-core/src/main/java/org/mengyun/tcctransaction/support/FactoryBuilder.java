@@ -17,6 +17,12 @@ public final class FactoryBuilder {
 
     }
 
+    /**
+     * 创建单例工厂
+     * @param clazz
+     * @param <T>
+     * @return
+     */
     public static <T> SingeltonFactory<T> factoryOf(Class<T> clazz) {
 
         if (!classFactoryMap.containsKey(clazz)) {

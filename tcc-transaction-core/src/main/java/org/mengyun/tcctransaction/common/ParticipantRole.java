@@ -7,5 +7,8 @@ public enum ParticipantRole {
     ROOT,
     CONSUMER,
     PROVIDER,
+    /**
+     * 不进行事务处理
+     */
     NORMAL;
 }

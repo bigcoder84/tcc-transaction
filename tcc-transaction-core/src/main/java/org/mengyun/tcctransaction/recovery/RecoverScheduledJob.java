@@ -4,6 +4,7 @@ import org.mengyun.tcctransaction.SystemException;
 import org.quartz.*;
 
 /**
+ * 事务重试JOB，事务恢复定时任务，基于 Quartz 实现调度，不断不断不断执行事务恢复
  * Created by changming.xie on 6/2/16.
  */
 public class RecoverScheduledJob {
@@ -30,7 +31,7 @@ public class RecoverScheduledJob {
             CronTrigger cronTrigger = TriggerBuilder.newTrigger().withIdentity(triggerName)
                     .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)
                             .withMisfireHandlingInstructionDoNothing()).build();
-
+            // 启动任务调度
             scheduler.scheduleJob(jobDetail, cronTrigger);
 
             scheduler.startDelayed(delayStartSeconds);

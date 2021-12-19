@@ -10,7 +10,7 @@ import org.mengyun.tcctransaction.dubbo.constants.TransactionContextConstants;
 import java.lang.reflect.Method;
 
 /**
- * Created by changming.xie on 1/19/17.
+ * Dubbo 事务上下文编辑器实现，通过 Dubbo 隐式传参方式获得事务上下文
  */
 public class DubboTransactionContextEditor implements TransactionContextEditor {
     @Override

@@ -5,7 +5,26 @@ package org.mengyun.tcctransaction.api;
  */
 public enum TransactionStatus {
 
-    TRYING(1), CONFIRMING(2), CANCELLING(3), TRY_SUCCESS(11), TRY_FAILED(12);
+    /**
+     * 尝试中
+     */
+    TRYING(1),
+    /**
+     * 确认中
+     */
+    CONFIRMING(2),
+    /**
+     * 取消中状态
+     */
+    CANCELLING(3),
+    /**
+     * 尝试成功
+     */
+    TRY_SUCCESS(11),
+    /**
+     * 尝试失败
+     */
+    TRY_FAILED(12);
 
     private int id;
 

@@ -27,6 +27,13 @@ public class CompensableMethodUtils {
         return method;
     }
 
+    /**
+     * 计算方法类型
+     * @param propagation
+     * @param isTransactionActive
+     * @param transactionContext
+     * @return
+     */
     public static ParticipantRole calculateMethodType(Propagation propagation, boolean isTransactionActive, TransactionContext transactionContext) {
 
         if ((propagation.equals(Propagation.REQUIRED) && !isTransactionActive && transactionContext == null) ||

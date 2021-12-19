@@ -11,6 +11,9 @@ public class DefaultRecoverFrequency implements RecoverFrequency {
 
     private int recoverDuration = 30; //30 seconds
 
+    /**
+     * 每15s执行一次
+     */
     private String cronExpression = "0/15 * * * * ? ";
 
     private int fetchPageSize = 500;

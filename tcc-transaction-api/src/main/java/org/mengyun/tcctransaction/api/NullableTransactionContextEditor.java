@@ -2,6 +2,9 @@ package org.mengyun.tcctransaction.api;
 
 import java.lang.reflect.Method;
 
+/**
+ * 无事务上下文编辑器实现
+ */
 public class NullableTransactionContextEditor  implements TransactionContextEditor {
 
     @Override
