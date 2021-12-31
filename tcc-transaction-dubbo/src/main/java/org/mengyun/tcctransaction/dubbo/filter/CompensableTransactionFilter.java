@@ -12,6 +12,9 @@ import org.mengyun.tcctransaction.support.FactoryBuilder;
 
 import java.lang.reflect.Method;
 
+/**
+ * Dubbo Filter机制，在调用远程调用Dubbo下游服务之前会进入
+ */
 @Activate(group = {Constants.CONSUMER})
 public class CompensableTransactionFilter implements Filter {
 

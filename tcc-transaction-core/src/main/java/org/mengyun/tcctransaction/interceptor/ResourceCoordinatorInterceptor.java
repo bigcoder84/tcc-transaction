@@ -45,6 +45,11 @@ public class ResourceCoordinatorInterceptor {
         return pjp.proceed(pjp.getArgs());
     }
 
+    /**
+     * 生成事务参与者
+     * @param pjp
+     * @return
+     */
     private Participant enlistParticipant(TransactionMethodJoinPoint pjp) {
 
         Transaction transaction = transactionManager.getCurrentTransaction();
@@ -62,10 +67,10 @@ public class ResourceCoordinatorInterceptor {
         TransactionXid xid = new TransactionXid(transaction.getXid().getGlobalTransactionId());
 
         if (compensableMethodContext.getTransactionContext() == null) {
-            // todo 实例化 事务上下文编辑器，并设置
+            // 获取 事务上下文编辑器，并设置事务上下文，如果根事务的@Copensable未设置transactionContextEditor参数，则使用NullableTransactionContextEditor，即不设置事务上下文
             FactoryBuilder.factoryOf(transactionContextEditorClass).getInstance().set(new TransactionContext(transaction.getRootXid(), xid, TransactionStatus.TRYING.getId(), ParticipantStatus.TRYING.getId()), pjp.getTarget(), pjp.getMethod(), pjp.getArgs());
         }
-        // todo 获得声明 @Compensable 方法的实际类
+        // 获得声明 @Compensable 方法的实际类
         Class targetClass = ReflectionUtils.getDeclaringType(pjp.getTarget().getClass(), compensableMethodContext.getMethod().getName(), compensableMethodContext.getMethod().getParameterTypes());
 
         // 创建 确认执行方法调用上下文 和 取消执行方法调用上下文
