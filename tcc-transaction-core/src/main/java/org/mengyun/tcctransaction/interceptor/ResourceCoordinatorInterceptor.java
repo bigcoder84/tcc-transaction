@@ -24,7 +24,7 @@ public class ResourceCoordinatorInterceptor {
 
         Transaction transaction = transactionManager.getCurrentTransaction();
         if (transaction != null && transaction.getStatus().equals(TransactionStatus.TRYING)) {
-            // 添加事务参与者
+            // 创建事务参与者，并将事务参与者添加至Transaction中
             Participant participant = enlistParticipant(pjp);
             if (participant != null) {
                 Object result = null;

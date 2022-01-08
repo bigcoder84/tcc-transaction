@@ -86,7 +86,7 @@ public class CompensableTransactionInterceptor {
         try {
             switch (TransactionStatus.valueOf(compensableMethodContext.getTransactionContext().getStatus())) {
                 case TRYING:
-                    // 传播发起分支事务
+                    // 创建分支事务
                     transaction = transactionManager.propagationNewBegin(compensableMethodContext.getTransactionContext());
                     Object result = null;
                     try {
@@ -115,14 +115,14 @@ public class CompensableTransactionInterceptor {
                 case CANCELLING:
                     try {
                         //The transaction' status of this branch transaction, passed from consumer side.
-                        // 该分支事务的事务状态，有消费者传递过来
-                        // todo
+                        // 该分支事务的事务状态，从消费者传递过来
                         int transactionStatusFromConsumer = compensableMethodContext.getTransactionContext().getParticipantStatus();
                         transaction = transactionManager.propagationExistBegin(compensableMethodContext.getTransactionContext());
 
                         // Only if transaction's status is at TRY_SUCCESS、TRY_FAILED、CANCELLING stage we can call rollback.
                         // If transactionStatusFromConsumer is TRY_SUCCESS, no mate current transaction is TRYING or not, also can rollback.
                         // transaction's status is TRYING while transactionStatusFromConsumer is TRY_SUCCESS may happen when transaction's changeStatus is async.
+                        // 只有当前分支事务在TRY_SUCCESS、TRY_FAILED、CANCELING阶段才可以调用rollback
                         if (transaction.getStatus().equals(TransactionStatus.TRY_SUCCESS)
                                 || transaction.getStatus().equals(TransactionStatus.TRY_FAILED)
                                 || transaction.getStatus().equals(TransactionStatus.CANCELLING)
